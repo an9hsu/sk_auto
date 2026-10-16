@@ -1,0 +1,476 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>旅遊險自動化測試使用說明書</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: 單欄手冊＋寬螢幕左側 sticky 目錄；頂部一條「投保旅程」路線圖說明測試走到哪裡停；指令依 Mac / Windows 切換 */
+:root {
+  --bg: #f2f5f9;
+  --paper: #ffffff;
+  --ink: #142033;
+  --muted: #5a6577;
+  --line: #d6dde8;
+  --accent: #2350a0;
+  --accent-soft: #e2eaf7;
+  --stamp: #b4541a;
+  --stamp-soft: #fbeadf;
+  --good: #1f7a45; --good-soft: #e0f2e7;
+  --bad: #b3261e;  --bad-soft: #fbe3e1;
+  --warn: #8a6100; --warn-soft: #f8efd6;
+  --term-bg: #111a2b; --term-fg: #dbe4f3; --term-dim: #8291ab;
+  --f-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1420; --paper: #151f30; --ink: #e4eaf4; --muted: #9eabc0; --line: #283650;
+    --accent: #86aef0; --accent-soft: #1b2a45; --stamp: #f0a070; --stamp-soft: #3a2316;
+    --good: #7fd4a0; --good-soft: #14301f; --bad: #f28b82; --bad-soft: #3a1c1a; --warn: #e8c060; --warn-soft: #33290f;
+    --term-bg: #090e17; --term-fg: #dbe4f3; --term-dim: #8291ab; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1420; --paper: #151f30; --ink: #e4eaf4; --muted: #9eabc0; --line: #283650;
+  --accent: #86aef0; --accent-soft: #1b2a45; --stamp: #f0a070; --stamp-soft: #3a2316;
+  --good: #7fd4a0; --good-soft: #14301f; --bad: #f28b82; --bad-soft: #3a1c1a; --warn: #e8c060; --warn-soft: #33290f;
+  --term-bg: #090e17; --term-fg: #dbe4f3; --term-dim: #8291ab; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.75;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 40px; }
+@media (max-width: 880px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; } nav.toc { position: static !important; } }
+
+header.hero { grid-column: 1 / -1; display: grid; gap: 14px; }
+.eyebrow { font-size: 13px; letter-spacing: .12em; color: var(--accent); font-weight: 700; }
+h1 { font-family: var(--f-display); font-weight: 900; font-size: clamp(30px, 5vw, 46px); line-height: 1.2; margin: 0; text-wrap: balance; }
+.lede { font-size: 18px; color: var(--muted); max-width: 60ch; margin: 0; }
+
+/* 投保旅程路線圖 */
+.route { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 20px clamp(16px, 3vw, 28px); display: grid; gap: 12px; }
+.route .cap { font-size: 13px; color: var(--muted); font-weight: 700; letter-spacing: .06em; }
+.stops { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; position: relative; }
+.stop { display: grid; justify-items: center; text-align: center; gap: 6px; position: relative; padding-top: 2px; }
+.stop::before { content: ""; position: absolute; top: 13px; left: 50%; width: 100%; height: 2px; background: var(--accent); z-index: 0; }
+.stop:nth-child(3)::before { background: repeating-linear-gradient(90deg, var(--stamp) 0 6px, transparent 6px 12px); }
+.stop:last-child::before { display: none; }
+.dot { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--paper); display: grid; place-items: center; font-family: var(--f-mono); font-size: 12px; font-weight: 600; position: relative; z-index: 1; }
+.stop.end .dot { background: var(--paper); color: var(--stamp); border: 2px solid var(--stamp); }
+.stop .nm { font-weight: 700; font-size: 15px; }
+.stop .ct { font-size: 12px; color: var(--muted); }
+.stop.end .nm { color: var(--stamp); }
+.stamp { justify-self: start; display: inline-flex; gap: 8px; align-items: center; border: 2px solid var(--stamp); color: var(--stamp); background: var(--stamp-soft); border-radius: 6px; padding: 4px 12px; font-weight: 700; font-size: 14px; }
+@media (max-width: 520px) { .stop .nm { font-size: 13px; } .stop .ct { font-size: 11px; } }
+
+/* OS 切換 */
+.os-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--paper); gap: 2px; justify-self: start; }
+.os-switch button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--muted); padding: 5px 16px; border-radius: 999px; cursor: pointer; }
+.os-switch button[aria-pressed="true"] { background: var(--accent); color: var(--paper); font-weight: 700; }
+.os-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.os-row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; font-size: 14px; color: var(--muted); }
+
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start; font-size: 14px; }
+nav.toc p { margin: 0 0 8px; font-weight: 700; color: var(--muted); font-size: 12px; letter-spacing: .12em; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+nav.toc a { display: block; padding: 6px 10px; border-radius: 6px; color: var(--ink); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); outline: none; }
+
+main { display: grid; gap: 28px; min-width: 0; }
+section.ch { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 28px clamp(18px, 4vw, 36px); min-width: 0; }
+section.ch > h2 { font-family: var(--f-display); font-weight: 700; font-size: 26px; line-height: 1.35; margin: 0 0 4px; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0 0 18px; }
+h3 { font-size: 17px; margin: 0 0 6px; }
+p { margin: 0 0 12px; max-width: 66ch; }
+ul { margin: 0 0 12px; padding-left: 1.3em; max-width: 66ch; }
+li { margin-bottom: 6px; }
+a { color: var(--accent); }
+code.i { font-family: var(--f-mono); font-size: .86em; background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; word-break: break-word; }
+
+.tablebox { overflow-x: auto; margin: 12px 0; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 520px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 700; background: var(--bg); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.n { font-family: var(--f-mono); color: var(--muted); width: 2.5em; font-variant-numeric: tabular-nums; }
+td.term-cell { white-space: nowrap; font-weight: 700; }
+
+.chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.chip.home { background: var(--accent-soft); color: var(--accent); }
+.chip.quote { background: var(--good-soft); color: var(--good); }
+.chip.login { background: var(--stamp-soft); color: var(--stamp); }
+
+.note { border-radius: 8px; padding: 12px 16px; margin: 14px 0; font-size: 15px; }
+.note p { margin: 0; max-width: none; }
+.note b.lab { display: block; font-size: 13px; letter-spacing: .06em; margin-bottom: 2px; }
+.note.tip { background: var(--accent-soft); } .note.tip b.lab { color: var(--accent); }
+.note.warn { background: var(--warn-soft); } .note.warn b.lab { color: var(--warn); }
+
+.term { background: var(--term-bg); color: var(--term-fg); border-radius: 8px; margin: 8px 0 14px; overflow: hidden; }
+.term .bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px 6px 14px; font-size: 12px; color: var(--term-dim); border-bottom: 1px solid rgba(130,145,171,.22); }
+.term pre { margin: 0; padding: 14px; overflow-x: auto; font-family: var(--f-mono); font-size: 14px; line-height: 1.6; }
+.copy { font: inherit; font-size: 12px; color: var(--term-fg); background: transparent; border: 1px solid rgba(130,145,171,.5); border-radius: 5px; padding: 3px 10px; cursor: pointer; white-space: nowrap; }
+.copy:hover { background: rgba(130,145,171,.16); }
+.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+body.os-win .only-mac, body.os-mac .only-win { display: none; }
+
+ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: s; display: grid; gap: 22px; }
+ol.steps > li { counter-increment: s; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; margin: 0; }
+ol.steps > li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--paper); font-family: var(--f-mono); font-weight: 600; font-size: 14px; }
+ol.steps > li > div { min-width: 0; }
+
+.sw { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 10px 0; }
+.sw > div { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0; }
+.sw .nm { font-weight: 700; }
+.sw .ds { font-size: 14px; color: var(--muted); }
+.sw .ds strong { color: var(--ink); }
+
+.cmds { display: grid; gap: 10px; }
+.cmd { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.cmd .what { padding: 10px 14px; font-weight: 700; font-size: 15px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.cmd .what .chip { font-weight: 700; }
+.cmd .term { margin: 0; border-radius: 0; }
+.flags { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 14px 0; font-size: 15px; }
+.flags dt { font-family: var(--f-mono); font-size: 14px; }
+.flags dd { margin: 0; color: var(--muted); }
+
+.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 14px 0; }
+.status > div { border-radius: 8px; padding: 12px 14px; min-width: 0; }
+.status .tag { font-family: var(--f-mono); font-weight: 600; font-size: 14px; }
+.status p { margin: 4px 0 0; font-size: 14px; }
+.s-pass { background: var(--good-soft); } .s-pass .tag { color: var(--good); }
+.s-fail { background: var(--bad-soft); } .s-fail .tag { color: var(--bad); }
+.s-err { background: var(--warn-soft); } .s-err .tag { color: var(--warn); }
+.s-skip { background: var(--bg); border: 1px solid var(--line); } .s-skip .tag { color: var(--muted); }
+
+.trouble td:first-child { width: 42%; }
+.trouble code.i { white-space: nowrap; }
+
+ol.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: r; }
+ol.rules li { counter-increment: r; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; margin: 0; padding: 14px; border-radius: 8px; background: var(--stamp-soft); }
+ol.rules li::before { content: counter(r); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--stamp); color: var(--stamp); font-family: var(--f-mono); font-weight: 600; font-size: 14px; }
+ol.rules li > div { min-width: 0; }
+ol.rules strong { display: block; color: var(--ink); }
+
+@media (max-width: 520px) { .flags { grid-template-columns: minmax(0, 1fr); gap: 0 0; } .flags dd { margin-bottom: 8px; } }
+footer { grid-column: 1 / -1; font-size: 13px; color: var(--muted); text-align: center; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">新光產物旅遊險 · sk_auto 專案</div>
+    <h1>旅遊險自動化測試使用說明書</h1>
+    <p class="lede">這套工具會自己打開瀏覽器，照劇本操作旅遊險網站，檢查畫面對不對。照著本說明做，不懂程式也能把它跑起來、看懂結果。</p>
+
+    <div class="route" aria-label="測試會走到哪一頁">
+      <div class="cap">測試會沿著投保流程走，最遠到這裡就停</div>
+      <div class="stops">
+        <div class="stop"><div class="dot">1</div><div class="nm">首頁</div><div class="ct">6 個測試</div></div>
+        <div class="stop"><div class="dot">2</div><div class="nm">保費試算</div><div class="ct">4 個測試</div></div>
+        <div class="stop"><div class="dot">3</div><div class="nm">會員登入</div><div class="ct">1 個測試・不按登入</div></div>
+        <div class="stop end"><div class="dot">✕</div><div class="nm">繳費</div><div class="ct">永遠不會到這裡</div></div>
+      </div>
+      <div class="stamp">不會真的投保，也不會付錢</div>
+    </div>
+
+    <div class="os-row">
+      <span>指令會依你的電腦顯示：</span>
+      <div class="os-switch" role="group" aria-label="選擇作業系統">
+        <button type="button" id="os-mac" aria-pressed="true">Mac</button>
+        <button type="button" id="os-win" aria-pressed="false">Windows</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="章節目錄">
+    <p>目錄</p>
+    <ol>
+      <li><a href="#terms">一、先搞懂幾個名詞</a></li>
+      <li><a href="#cover">二、它幫你檢查了什麼</a></li>
+      <li><a href="#install">三、第一次安裝</a></li>
+      <li><a href="#profile">四、設定個人資料</a></li>
+      <li><a href="#run">五、開始跑測試</a></li>
+      <li><a href="#result">六、看結果</a></li>
+      <li><a href="#trouble">七、遇到問題</a></li>
+      <li><a href="#rules">八、一定要遵守的規則</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section class="ch" id="terms">
+      <h2>一、先搞懂幾個名詞</h2>
+      <p class="sub">自動化測試，就是把「人手動點網頁、用眼睛檢查」寫成劇本，讓電腦照劇本一鍵重跑。網站每次更新後跑一次，就知道有沒有東西壞掉。</p>
+      <div class="tablebox">
+        <table>
+          <thead><tr><th>名詞</th><th>白話解釋</th></tr></thead>
+          <tbody>
+            <tr><td class="term-cell">測試（TC，Test Case）</td><td>一段劇本，例如「選香港、選日期、按下一步，確認保費有出來」。</td></tr>
+            <tr><td class="term-cell">通過（passed）</td><td>劇本照走完，畫面都跟預期一樣。</td></tr>
+            <tr><td class="term-cell">失敗（failed／error）</td><td>某一步跟預期不一樣，或網頁打不開。</td></tr>
+            <tr><td class="term-cell">終端機</td><td>輸入指令的文字視窗。Mac 是「終端機」App，Windows 是「PowerShell」。本說明的指令都在這裡輸入，打完按 Enter。</td></tr>
+            <tr><td class="term-cell">指令</td><td>打在終端機裡、叫電腦做事的一行字，例如 <code class="i">pytest --env=prod -m travel</code>。</td></tr>
+            <tr><td class="term-cell">專案資料夾</td><td>存放這套測試的資料夾（<code class="i">sk_auto</code>）。所有指令都要在這個資料夾裡執行。</td></tr>
+            <tr><td class="term-cell">虛擬環境（.venv）</td><td>這個專案專用的工具箱，跟電腦上其他程式互不干擾。每次打開終端機都要先「啟用」它。</td></tr>
+            <tr><td class="term-cell">Python／pytest／Selenium</td><td>這套測試用到的工具：Python 是程式語言，pytest 負責執行測試，Selenium 負責操作瀏覽器。只要裝好，不用懂它們怎麼寫。</td></tr>
+            <tr><td class="term-cell">headless／headed</td><td>headless：瀏覽器在背景跑，看不到視窗（預設）。headed：會開出視窗，看得到電腦在點什麼。</td></tr>
+            <tr><td class="term-cell">Allure 報表</td><td>測完後產生的網頁報告，用瀏覽器打開就能看每個測試的結果和截圖。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ch" id="cover">
+      <h2>二、它幫你檢查了什麼</h2>
+      <p class="sub">目前有 10 個測試，全部在旅遊險正式網站上跑，<strong>都停在繳費前，不會真的投保或付錢</strong>。</p>
+      <div class="tablebox">
+        <table>
+          <thead><tr><th>#</th><th>檢查什麼（白話）</th><th>走到哪一頁為止</th></tr></thead>
+          <tbody>
+            <tr><td class="n">1</td><td>多人投保一路填到「會員登入」，帳號有自動帶入（不會按登入）</td><td><span class="chip login">會員登入</span></td></tr>
+            <tr><td class="n">2</td><td>首頁每個「熱門地點」都點得到</td><td><span class="chip home">首頁</span></td></tr>
+            <tr><td class="n">3</td><td>多人投保時，月曆最早只能選 3 天後出發</td><td><span class="chip home">首頁</span></td></tr>
+            <tr><td class="n">4</td><td>選 3 天的行程，確認框的地點、日期、天數正確，且有算出保費</td><td><span class="chip quote">保費試算</span></td></tr>
+            <tr><td class="n">5</td><td>同上，換成 30 天、跨月份的行程</td><td><span class="chip quote">保費試算</span></td></tr>
+            <tr><td class="n">6</td><td>只選 2 天 → 網站會提醒「保險期間至少 3日」</td><td><span class="chip home">首頁</span></td></tr>
+            <tr><td class="n">7</td><td>什麼都沒填就按「下一步」→ 會被擋下</td><td><span class="chip home">首頁</span></td></tr>
+            <tr><td class="n">8</td><td>月曆沒選日期就按「確定」→ 提醒「請選擇出發與結束日期」</td><td><span class="chip home">首頁</span></td></tr>
+            <tr><td class="n">9</td><td>每個保險方案都有保費且不同；切換方案會跟著改</td><td><span class="chip quote">保費試算</span></td></tr>
+            <tr><td class="n">10</td><td>聲明事項沒看完不能勾；沒勾同意就按下一步會被擋下</td><td><span class="chip quote">保費試算</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ch" id="install">
+      <h2>三、第一次安裝</h2>
+      <p class="sub">只要做一次。跟著下面 5 步做完，之後每次只要「啟用環境 → 跑指令」。遇到看不懂的錯誤訊息，先看<a href="#trouble">第七節「遇到問題」</a>。</p>
+
+      <ol class="steps">
+        <li><div>
+          <h3>安裝 4 個軟體</h3>
+          <p>都是一路按「下一步」就能裝好。</p>
+          <div class="sw">
+            <div><span class="nm">Python 3.12</span><span class="ds">執行測試。<a href="https://www.python.org/downloads/">python.org/downloads</a>，選 3.12.x；<strong>Windows 安裝時一定要勾「Add python.exe to PATH」</strong></span></div>
+            <div><span class="nm">Google Chrome</span><span class="ds">測試用的瀏覽器。<a href="https://www.google.com/chrome/">google.com/chrome</a></span></div>
+            <div><span class="nm">Git</span><span class="ds">下載專案。<a href="https://git-scm.com/downloads">git-scm.com/downloads</a>，Mac 通常已內建</span></div>
+            <div><span class="nm">Node.js</span><span class="ds">產生報表。<a href="https://nodejs.org/">nodejs.org</a>，選 LTS 版</span></div>
+          </div>
+        </div></li>
+
+        <li><div>
+          <h3>確認裝好了</h3>
+          <p>打開終端機輸入下面指令，有出現版本號碼就代表成功<span class="only-mac">（應顯示 Python 3.12.x）</span>。</p>
+          <div class="term only-mac"><div class="bar"><span>Mac 終端機</span><button class="copy" type="button" id="c-ver-mac">複製</button></div><pre>python3.12 --version
+node --version</pre></div>
+          <div class="term only-win"><div class="bar"><span>Windows PowerShell</span><button class="copy" type="button" id="c-ver-win">複製</button></div><pre>py -3.12 --version
+node --version</pre></div>
+        </div></li>
+
+        <li><div>
+          <h3>下載專案</h3>
+          <p>第二行是「進入專案資料夾」，之後所有指令都要在這個資料夾裡執行。</p>
+          <div class="term"><div class="bar"><span>終端機</span><button class="copy" type="button" id="c-clone">複製</button></div><pre>git clone https://github.com/an9hsu/sk_auto.git
+cd sk_auto</pre></div>
+        </div></li>
+
+        <li><div>
+          <h3>建立並啟用虛擬環境、安裝工具</h3>
+          <p>一行一行輸入。成功啟用後，終端機每一行最前面會出現 <code class="i">(.venv)</code>。</p>
+          <div class="term only-mac"><div class="bar"><span>Mac 終端機</span><button class="copy" type="button" id="c-venv-mac">複製</button></div><pre>python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt</pre></div>
+          <div class="term only-win"><div class="bar"><span>Windows PowerShell</span><button class="copy" type="button" id="c-venv-win">複製</button></div><pre>py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt</pre></div>
+          <div class="note warn only-win"><b class="lab">Windows 出現「已停用指令碼執行」？</b><p>先輸入一次 <code class="i">Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> 再重試。</p></div>
+        </div></li>
+
+        <li><div>
+          <h3>安裝報表工具</h3>
+          <p>第二行會顯示版本，看到 <code class="i">3.20.1</code> 就完成了。</p>
+          <div class="term"><div class="bar"><span>終端機</span><button class="copy" type="button" id="c-npm">複製</button></div><pre>npm install
+npx allure --version</pre></div>
+        </div></li>
+      </ol>
+
+      <div class="note tip"><b class="lab">小提醒</b><p>瀏覽器的「驅動程式」不用自己裝，第一次跑測試時會自動下載，所以第一次會比較久。</p></div>
+    </section>
+
+    <section class="ch" id="profile">
+      <h2>四、設定個人資料</h2>
+      <p class="sub">只要做一次。測試要填身分證、生日、會員帳號。這些是個資，只存在你自己電腦的兩個檔案裡，不會上傳。</p>
+
+      <ol class="steps">
+        <li><div>
+          <h3>複製範本</h3>
+          <p>在專案資料夾輸入指令。注意新檔名前面多一個點 <code class="i">.</code>。</p>
+          <div class="term only-mac"><div class="bar"><span>Mac 終端機</span><button class="copy" type="button" id="c-cp-mac">複製</button></div><pre>cp configs/account_prod.yml.sample configs/.account_prod.yml</pre></div>
+          <div class="term only-win"><div class="bar"><span>Windows PowerShell</span><button class="copy" type="button" id="c-cp-win">複製</button></div><pre>copy configs\account_prod.yml.sample configs\.account_prod.yml</pre></div>
+        </div></li>
+        <li><div>
+          <h3>填入真實資料</h3>
+          <p>用記事本或 VS Code 打開 <code class="i">configs/.account_prod.yml</code>，把假資料換成真的。生日用西元、前後要加雙引號，例如 <code class="i">"1990/01/01"</code>。</p>
+        </div></li>
+        <li><div>
+          <h3>設定會員密碼</h3>
+          <p>同樣把 <code class="i">.env.sample</code> 複製成 <code class="i">.env</code>，打開後在 <code class="i">TRAVEL_MEMBER_PWD=</code> 後面填密碼。</p>
+        </div></li>
+      </ol>
+
+      <div class="note tip only-mac"><b class="lab">找不到「.」開頭的檔案？</b><p>Mac 的 Finder 預設看不到它們，按 <code class="i">Cmd + Shift + .</code> 就會顯示。</p></div>
+    </section>
+
+    <section class="ch" id="run">
+      <h2>五、開始跑測試</h2>
+      <p class="sub">每次要跑測試，都是同樣 3 步：打開終端機 → 進專案資料夾並啟用環境 → 輸入指令。</p>
+
+      <ol class="steps">
+        <li><div>
+          <h3>進專案資料夾、啟用環境</h3>
+          <div class="term only-mac"><div class="bar"><span>Mac 終端機</span><button class="copy" type="button" id="c-act-mac">複製</button></div><pre>cd sk_auto
+source .venv/bin/activate</pre></div>
+          <div class="term only-win"><div class="bar"><span>Windows PowerShell</span><button class="copy" type="button" id="c-act-win">複製</button></div><pre>cd sk_auto
+.venv\Scripts\Activate.ps1</pre></div>
+        </div></li>
+        <li><div>
+          <h3>選一行指令輸入</h3>
+          <p>看到 <code class="i">(.venv)</code> 後，依照想做的事選一行。</p>
+          <div class="cmds">
+            <div class="cmd">
+              <div class="what">跑全部測試 <span class="chip quote">最常用</span></div>
+              <div class="term"><div class="bar"><span>背景執行，看不到視窗</span><button class="copy" type="button" id="c-run-all">複製</button></div><pre>pytest --env=prod -m travel</pre></div>
+            </div>
+            <div class="cmd">
+              <div class="what">跑全部，並開視窗看電腦怎麼點</div>
+              <div class="term"><div class="bar"><span>headed</span><button class="copy" type="button" id="c-run-headed">複製</button></div><pre>pytest --env=prod -m travel --headed</pre></div>
+            </div>
+            <div class="cmd">
+              <div class="what">只跑某一個測試</div>
+              <div class="term"><div class="bar"><span>-k 後面接測試名稱的一部分</span><button class="copy" type="button" id="c-run-one">複製</button></div><pre>pytest --env=prod -k reach_member_login --headed</pre></div>
+            </div>
+            <div class="cmd">
+              <div class="what">改用 Edge 瀏覽器</div>
+              <div class="term"><div class="bar"><span>Edge</span><button class="copy" type="button" id="c-run-edge">複製</button></div><pre>pytest --env=prod -m travel --browser-name=edge</pre></div>
+            </div>
+          </div>
+
+          <p style="margin-top:16px">指令裡各部分的意思：</p>
+          <dl class="flags">
+            <dt>--env=prod</dt><dd>測正式網站，<strong>一定要加</strong></dd>
+            <dt>-m travel</dt><dd>只跑旅遊險</dd>
+            <dt>--headed</dt><dd>開視窗</dd>
+          </dl>
+        </div></li>
+      </ol>
+
+      <div class="note warn"><b class="lab">跑的時候</b><p>不要關掉終端機，也不要去點彈出來的瀏覽器視窗。</p></div>
+    </section>
+
+    <section class="ch" id="result">
+      <h2>六、看結果</h2>
+      <p class="sub">跑完後終端機最後一行會告訴你幾個通過、幾個失敗。</p>
+      <div class="term"><div class="bar"><span>範例：10 個全部通過</span></div><pre>==== 10 passed in 245.12s ====</pre></div>
+
+      <div class="status">
+        <div class="s-pass"><div class="tag">passed</div><p>通過，沒問題。</p></div>
+        <div class="s-fail"><div class="tag">failed</div><p>檢查沒過：網站行為跟預期不同，可能是網站的 bug。</p></div>
+        <div class="s-err"><div class="tag">error</div><p>測試本身沒跑起來，常見原因是網站打不開或在維護。</p></div>
+        <div class="s-skip"><div class="tag">skipped</div><p>這次跳過沒跑。</p></div>
+      </div>
+
+      <h3 style="margin-top:22px">失敗時的截圖</h3>
+      <p>只要有測試失敗，就會自動截圖存在 <code class="i">test-results/screenshots/</code> 資料夾，檔名就是測試名稱。打開就知道卡在哪個畫面。</p>
+
+      <h3 style="margin-top:22px">網頁報表（推薦）</h3>
+      <p>跑完測試後輸入下面指令，瀏覽器會開出繁中報表。</p>
+      <div class="term"><div class="bar"><span>終端機</span><button class="copy" type="button" id="c-allure">複製</button></div><pre>npx allure generate allure-results --open</pre></div>
+      <p>報表裡可以看到：</p>
+      <ul>
+        <li>每個測試通過或失敗、花了多久</li>
+        <li>失敗的測試停在哪一步，以及當下的截圖和網址</li>
+        <li>歷次執行的通過率趨勢</li>
+      </ul>
+      <p>看完回到終端機按 <code class="i">Ctrl + C</code> 結束。想給別人看，把 <code class="i">allure-report/awesome/index.html</code> 這一個檔案寄出去就好，對方雙擊就能打開。</p>
+    </section>
+
+    <section class="ch" id="trouble">
+      <h2>七、遇到問題</h2>
+      <p class="sub">大部分問題都是「沒啟用環境」或「不在專案資料夾」。先對下表，都不是的話把截圖和終端機最後幾行一起交給維護的工程師。</p>
+      <div class="tablebox trouble">
+        <table>
+          <thead><tr><th>看到的狀況</th><th>怎麼解決</th></tr></thead>
+          <tbody>
+            <tr><td><code class="i">pytest: command not found</code> 或「不是內部或外部命令」</td><td>沒啟用環境。先輸入<a href="#run">第五節</a>的啟用指令，看到 <code class="i">(.venv)</code> 再跑</td></tr>
+            <tr><td><code class="i">--env 必填</code></td><td>指令忘了加 <code class="i">--env=prod</code></td></tr>
+            <tr><td><code class="i">Env yaml not found</code></td><td>不在專案資料夾，先輸入 <code class="i">cd sk_auto</code></td></tr>
+            <tr><td><code class="i">Account yaml not found</code></td><td>還沒建個資檔，看<a href="#profile">第四節</a></td></tr>
+            <tr><td>第一次跑卡很久</td><td>正在自動下載瀏覽器驅動程式，等一下就好</td></tr>
+            <tr><td><code class="i">npm</code> 或 <code class="i">npx: command not found</code></td><td>Node.js 沒裝好；裝完要關掉終端機重開</td></tr>
+            <tr><td>全部測試一起失敗，出現 <code class="i">TimeoutException</code> 或截圖是維護公告</td><td>旅遊險網站在系統維護，等維護結束再跑</td></tr>
+            <tr><td>偶爾一個失敗，重跑又過了</td><td>網站剛好慢，可以忽略；常常發生就回報工程師</td></tr>
+            <tr><td>同一個測試每次都失敗</td><td>可能網站改版或有 bug，把截圖和 Allure 報表交給工程師</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ch" id="rules">
+      <h2>八、一定要遵守的規則</h2>
+      <p class="sub">這是正式網站，也會用到真實個資，以下三條請務必遵守。</p>
+      <ol class="rules">
+        <li><div><strong>不要改測試程式讓它走到「繳費」</strong>這是正式網站，所有測試最多停在會員登入前。</div></li>
+        <li><div><strong>個資只放在 <code class="i">configs/.account_prod.yml</code> 和 <code class="i">.env</code></strong>不要寫進其他檔案，也不要上傳或寄給別人。</div></li>
+        <li><div><strong>寄報表前先看一下截圖</strong>失敗截圖可能拍到已填入的身分證或生日。</div></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer>內容整理自〈旅遊險自動化測試 使用說明書〉文件 · 2026-10-16</footer>
+</div>
+
+<script>
+(function () {
+  var KEY = 'sk-guide-os';
+  function setOS(os) {
+    document.body.classList.toggle('os-mac', os === 'mac');
+    document.body.classList.toggle('os-win', os === 'win');
+    document.getElementById('os-mac').setAttribute('aria-pressed', String(os === 'mac'));
+    document.getElementById('os-win').setAttribute('aria-pressed', String(os === 'win'));
+    try { localStorage.setItem(KEY, os); } catch (e) {}
+  }
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  if (!saved) saved = /Win/i.test(navigator.platform || navigator.userAgent) ? 'win' : 'mac';
+  setOS(saved === 'win' ? 'win' : 'mac');
+  document.getElementById('os-mac').addEventListener('click', function () { setOS('mac'); });
+  document.getElementById('os-win').addEventListener('click', function () { setOS('win'); });
+
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var pre = btn.closest('.term').querySelector('pre');
+      var text = pre.textContent.trim();
+      var reset = function (ms) { setTimeout(function () { btn.textContent = '複製'; }, ms); };
+      var fallback = function () {
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        btn.textContent = '已選取，請按複製'; reset(2400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { btn.textContent = '已複製'; reset(1600); }, fallback);
+      } else { fallback(); }
+    });
+  });
+})();
+</script>
+
+</body></html>

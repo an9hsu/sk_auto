@@ -1,0 +1,8 @@
+# 範本：複製成 configs/.account_prod.yml 再填入真實資料（該檔已 gitignore，不可進版控）
+# 密碼一律放 .env（TRAVEL_MEMBER_PWD），不要寫在這裡
+travel:
+  proposer:
+    id: A123456789           # 要保人身分證字號
+    birthday: "1990/01/01"   # 西元 YYYY/MM/DD
+  member:
+    account: A123456789      # 會員帳號

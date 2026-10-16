@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Page Object: `selenium_object/<product>/` — 全部繼承 `BasePage`（各產品可再包一層，如 `TravelBasePage`）
 - Locators: `selenium_object/locators/<product>/` — `(By, value)` tuple，Page 內不寫死 selector
 - Driver: `selenium_object/driver_manager.py` — `DriverManager.open(PageCls)` 產生 Page Object
-- Config: frozen dataclasses in `configs/settings.py`；URL 在 `configs/env_{env}.yml`、帳號資料在 `configs/account_{env}.yml`、密碼只從 env var（`.env`）
+- Config: frozen dataclasses in `configs/settings.py`；URL 在 `configs/env_{env}.yml`、帳號個資在 `configs/.account_{env}.yml`（gitignore，範本為 `account_{env}.yml.sample`）、密碼只從 env var（`.env`）
 - Tests: `tests/ui_test/<product>/`；共用 helper（`session_driver`、`capture_screenshot_on_failure`）在 `tests/ui_test/conftest.py`
 
 ## Conventions
@@ -26,15 +26,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Hard Constraints
 
 - **正式機（prod）不可進到繳費步驟**：任何流程最多停在繳費前（目前旅遊險停在會員登入）
-- 不自動破解圖形驗證碼；需要驗證碼的 TC 標 `requires_headed`，以 `--headed` 人工輸入
+- 個資（身分證、生日、帳號）只能放 `configs/.account_{env}.yml`，不可寫進程式碼、測試或其他會進版控的檔案
+- 目前不寫需要人工介入（如圖形驗證碼）的 TC；也不自動破解圖形驗證碼
 - `--env` 必填，沒有預設值
 - Run from project root（`Path.cwd()` 用來找 yml / .env）
-- 每次 commit 前通過 `make fix` 與 `make check`
 
 ## Commands
 
 ```bash
-pytest --env=prod -m travel                         # headless（需人工驗證碼的 TC 會 skip）
-pytest --env=prod -m travel --headed                # 開視窗，可手動輸入驗證碼
+pytest --env=prod -m travel                         # headless
+pytest --env=prod -m travel --headed                # 開視窗看操作過程
 pytest --env=prod -m travel --browser-name=edge     # 換瀏覽器
+npx allure generate allure-results --open           # Allure 3 報表（設定在 allurerc.mjs，產出單一 HTML）
 ```

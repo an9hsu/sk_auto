@@ -1,0 +1,8 @@
+{
+  "name": "sk_auto",
+  "private": true,
+  "description": "只用來安裝 Allure 3 報表工具（測試本身是 Python）",
+  "devDependencies": {
+    "allure": "3.20.1"
+  }
+}

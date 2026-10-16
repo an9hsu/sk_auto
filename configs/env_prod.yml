@@ -1,0 +1,2 @@
+# 正式機：只能跑到「繳費前」，任何會送出付款的步驟都不准自動化
+TRAVEL_BASE_URL: "https://www.sk858.com.tw/skechas/has/travel"
